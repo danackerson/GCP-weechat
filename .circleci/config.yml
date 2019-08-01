@@ -23,12 +23,12 @@ jobs:
               --image-family=coreos-stable --image-project=coreos-cloud \
               --machine-type=f1-micro --boot-disk-size=30GB
 
+            apk -u add jq
             export PUBLIC_IP=`gcloud compute instances describe weechat-7 --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
 
       - run:
           name: Prepare deploy network access
           command: |
-            apk -u add jq
             export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
             export DEPLOY_IP=`curl -s https://icanhazip.com`
