@@ -26,7 +26,7 @@ jobs:
             apk -u add jq
             export PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
-            echo "Public IP is: $PUBLIC_IP"
+
       - run:
           name: Prepare deploy network access
           command: |
@@ -42,6 +42,7 @@ jobs:
           name: Prepare Traefik & Weechat config
           command: |
             #TODO - fill in the blanks via sed/awk
+            echo "Public IP is: $PUBLIC_IP"
             scp -o StrictHostKeyChecking=no -r traefik ackersond@$PUBLIC_IP:~/
 
             #TODO - fill in the blanks via sed/awk etc
