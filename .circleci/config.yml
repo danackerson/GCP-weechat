@@ -26,13 +26,16 @@ jobs:
             apk -u add jq
             export PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
+            echo "Public IP is: $PUBLIC_IP"
       - run:
           name: Prepare deploy network access
           command: |
-            export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh --format=json | jq -r '.sourceRanges | @csv'`
+            export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh \
+              --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
             export DEPLOY_IP=`curl -s https://icanhazip.com`
-            gcloud compute firewall-rules update default-allow-ssh --source-ranges=$ORIG_RANGE,$DEPLOY_IP
+            gcloud compute firewall-rules update default-allow-ssh \
+              --source-ranges=$ORIG_RANGE,$DEPLOY_IP
 
       - checkout
       - run:
@@ -70,7 +73,8 @@ jobs:
       - run:
           name: Remove deploy network access
           command: |
-            gcloud compute firewall-rules update default-allow-ssh --source-ranges=$ORIG_RANGE
+            gcloud compute firewall-rules update default-allow-ssh \
+              --source-ranges=$ORIG_RANGE
           when: always
 
 workflows:
