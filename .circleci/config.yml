@@ -26,6 +26,7 @@ jobs:
       - run:
           name: Prepare deploy network access
           command: |
+            apk -u add jq
             export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
             export DEPLOY_IP=`curl -s https://icanhazip.com`
@@ -68,7 +69,7 @@ jobs:
       - run:
           name: Remove deploy network access
           command: |
-            gcloud compute firewall-rules update --source-ranges=$ORIG_RANGE
+            gcloud compute firewall-rules update default-allow-ssh --source-ranges=$ORIG_RANGE
           when: always
 
 workflows:
