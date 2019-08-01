@@ -1,0 +1,78 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: google/cloud-sdk:alpine
+    working_directory: ~/gke
+    steps:
+      - run:
+          name: Store Service Accounts
+          command: |
+            echo $CTX_GOOGLE_DEPLOY_SERVICE_JSON > ${HOME}/gcloud-service-key.json
+            chmod 600 $HOME/gcloud-service-key.json
+
+      - run:
+          name: Setup compute instance
+          command: |
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${CTX_GOOGLE_PROJECT_ID}
+            gcloud --quiet config set compute/zone ${CTX_GOOGLE_COMPUTE_ZONE}
+
+            gcloud compute instances create weechat-$CIRCLE_BUILD_NUM \
+              --image-family=coreos-stable --image-project=coreos-cloud \
+              --machine-type=f1-micro --boot-disk-size=30GB
+
+      - run:
+          name: Prepare deploy network access
+          command: |
+            export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh --format=json | jq -r '.sourceRanges | @csv'`
+            ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
+            export DEPLOY_IP=`curl -s https://icanhazip.com`
+            gcloud compute firewall-rules update default-allow-ssh --source-ranges=$ORIG_RANGE,$DEPLOY_IP
+
+      - checkout
+      - run:
+          name: Prepare Traefik & Weechat config
+          command: |
+            #TODO - fill in the blanks via sed/awk
+            gcloud compute scp --recurse traefik acme.json weechat:~/
+
+            #TODO - fill in the blanks via sed/awk etc
+            gcloud compute scp --recurse weechat weechat:~/
+
+      - run:
+          name: Launch Traefik & Weechat containers
+          command: |
+            gcloud compute ssh --command "docker network create web && \
+            docker run -d --restart=always --network='web' \
+              -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v ~/traefik/traefik.toml:/traefik.toml \
+              -v ~/traefik/logs:/var/log/traefik/ \
+              -v ~/traefik/acme.json:/acme.json \
+              -p 443:443 --name traefik traefik:1.7"
+
+            gcloud compute ssh --command "\
+              docker run -it  \
+              -e UID=1000 -e GID=1000 \
+              -v ~/weechat:/weechat --restart=always --network='web' \
+              --label='traefik.frontend.rule=Host:{WEECHAT_HOSTNAME}' \
+              --label='traefik.frontend.passHostHeader=true' \
+              --label='traefik.enable=true' \
+              --label='traefik.docker.network=web' \
+              --label='traefik.port=${WEECHAT_RELAY_PORT}' \
+              --label='traefik.backend=weechat' \
+              --name weechat jkaberg/weechat"
+
+      - run:
+          name: Remove deploy network access
+          command: |
+            gcloud compute firewall-rules update --source-ranges=$ORIG_RANGE
+          when: always
+
+workflows:
+  build:
+    jobs:
+        - build:
+            context: org-global
