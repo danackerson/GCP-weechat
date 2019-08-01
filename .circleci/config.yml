@@ -25,7 +25,7 @@ jobs:
 
             apk -u add jq
             export PUBLIC_IP=`gcloud compute instances describe weechat-7 --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
-
+            echo "Public IP of instance is: $PUBLIC_IP"
       - run:
           name: Prepare deploy network access
           command: |
