@@ -11,7 +11,7 @@ jobs:
           command: |
             echo $CTX_GOOGLE_DEPLOY_SERVICE_JSON > ${HOME}/gcloud-service-key.json
             chmod 600 $HOME/gcloud-service-key.json
-
+      - checkout
       - run:
           name: Setup compute instance
           command: |
@@ -26,12 +26,7 @@ jobs:
             apk -u add jq bash
             PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
-            echo 'export $PUBLIC_IP' >> $BASH_ENV
 
-      - run:
-          name: Prepare deploy network access
-          command: |
-            source $BASH_ENV
             ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh \
               --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
@@ -40,22 +35,12 @@ jobs:
             gcloud compute firewall-rules update default-allow-ssh \
               --source-ranges=$ORIG_RANGE,$DEPLOY_IP
 
-      - checkout
-      - run:
-          name: Prepare Traefik & Weechat config
-          command: |
-            source $BASH_ENV
             #TODO - fill in the blanks via sed/awk
-            echo "Public IP is: $PUBLIC_IP"
             scp -o StrictHostKeyChecking=no -r traefik ackersond@$PUBLIC_IP:~/
 
             #TODO - fill in the blanks via sed/awk etc
             scp -r weechat ackersond@$PUBLIC_IP:~/
 
-      - run:
-          name: Launch Traefik & Weechat containers
-          command: |
-            source $BASH_ENV
             ssh ackersond@$PUBLIC_IP -- "docker network create web && \
             docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
@@ -76,15 +61,11 @@ jobs:
               --label='traefik.backend=weechat' \
               --name weechat jkaberg/weechat"
 
-      - run:
-          name: Remove deploy network access
-          command: |
             source $BASH_ENV
             if [ ! -z "$ORIG_RANGE" ] then;
               gcloud compute firewall-rules update default-allow-ssh \
               --source-ranges=$ORIG_RANGE
             fi
-          when: always
 
 workflows:
   build:
