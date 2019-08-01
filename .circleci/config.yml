@@ -37,15 +37,15 @@ jobs:
           name: Prepare Traefik & Weechat config
           command: |
             #TODO - fill in the blanks via sed/awk
-            gcloud compute scp --recurse traefik ackersond@weechat:~/
+            scp -o StrictHostKeyChecking=no -r traefik ackersond@weechat:~/
 
             #TODO - fill in the blanks via sed/awk etc
-            gcloud compute scp --recurse weechat ackersond@weechat:~/
+            scp -r weechat ackersond@weechat:~/
 
       - run:
           name: Launch Traefik & Weechat containers
           command: |
-            gcloud compute ssh ackersond@weechat --command "docker network create web && \
+            ssh ackersond@weechat -- "docker network create web && \
             docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
               -v /var/run/docker.sock:/var/run/docker.sock \
@@ -54,8 +54,7 @@ jobs:
               -v ~/traefik/acme.json:/acme.json \
               -p 443:443 --name traefik traefik:1.7"
 
-            gcloud compute ssh ackersond@weechat --command "\
-              docker run -it  \
+            ssh ackersond@weechat -- "docker run -it  \
               -e UID=1000 -e GID=1000 \
               -v ~/weechat:/weechat --restart=always --network='web' \
               --label='traefik.frontend.rule=Host:{WEECHAT_HOSTNAME}' \
