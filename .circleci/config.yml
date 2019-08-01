@@ -24,17 +24,17 @@ jobs:
               --machine-type=f1-micro --boot-disk-size=30GB
 
             apk -u add jq bash
-            export PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
+            PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
-            echo $PUBLIC_IP >> $BASH_ENV
+            echo 'export $PUBLIC_IP' >> $BASH_ENV
 
       - run:
           name: Prepare deploy network access
           command: |
-            export ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh \
+            ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh \
               --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
-            echo $ORIG_RANGE >> $BASH_ENV
+            echo 'export ORIG_RANGE=$ORIG_RANGE' >> $BASH_ENV
             export DEPLOY_IP=`curl -s https://icanhazip.com`
             gcloud compute firewall-rules update default-allow-ssh \
               --source-ranges=$ORIG_RANGE,$DEPLOY_IP
