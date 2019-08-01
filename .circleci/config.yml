@@ -24,6 +24,7 @@ jobs:
               --machine-type=f1-micro --boot-disk-size=30GB
 
             apk -u add jq bash
+            bash
             PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
             echo 'export $PUBLIC_IP' >> $BASH_ENV
@@ -31,6 +32,7 @@ jobs:
       - run:
           name: Prepare deploy network access
           command: |
+            bash
             ORIG_RANGE=`gcloud compute firewall-rules describe default-allow-ssh \
               --format=json | jq -r '.sourceRanges | @csv'`
             ORIG_RANGE=`echo ${ORIG_RANGE//\"}`
@@ -43,6 +45,7 @@ jobs:
       - run:
           name: Prepare Traefik & Weechat config
           command: |
+            bash
             #TODO - fill in the blanks via sed/awk
             echo "Public IP is: $PUBLIC_IP"
             scp -o StrictHostKeyChecking=no -r traefik ackersond@$PUBLIC_IP:~/
@@ -53,6 +56,7 @@ jobs:
       - run:
           name: Launch Traefik & Weechat containers
           command: |
+            bash
             ssh ackersond@$PUBLIC_IP -- "docker network create web && \
             docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
@@ -76,8 +80,11 @@ jobs:
       - run:
           name: Remove deploy network access
           command: |
-            gcloud compute firewall-rules update default-allow-ssh \
+            bash
+            if [ ! -z "$ORIG_RANGE" ] then;
+              gcloud compute firewall-rules update default-allow-ssh \
               --source-ranges=$ORIG_RANGE
+            fi
           when: always
 
 workflows:
