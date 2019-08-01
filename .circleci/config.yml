@@ -4,6 +4,9 @@ jobs:
   build:
     docker:
       - image: google/cloud-sdk:alpine
+        environment:
+          PUBLIC_IP: <TBD>
+          ORIG_RANGE: <TBD2>
     working_directory: ~/gke
     steps:
       - run:
