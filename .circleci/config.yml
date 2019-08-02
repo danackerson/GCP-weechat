@@ -6,6 +6,9 @@ jobs:
       - image: google/cloud-sdk:alpine
     working_directory: ~/gke
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - $CTX_SSH_DEPLOY_FINGERPRINT
       - run:
           name: Store Service Accounts
           command: |
@@ -41,9 +44,6 @@ jobs:
               --source-ranges=$ORIG_RANGE,$DEPLOY_IP
 
       - checkout
-      - add-ssh-keys:
-          fingerprints:
-            - $CTX_SSH_DEPLOY_FINGERPRINT
       - run:
           name: Prepare Traefik & Weechat config
           command: |
