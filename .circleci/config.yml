@@ -50,16 +50,16 @@ jobs:
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             #TODO - fill in the blanks via sed/awk
             echo "Public IP is: $PUBLIC_IP"
-            scp -o StrictHostKeyChecking=no -r traefik ackersond@$PUBLIC_IP:~/
+            scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             #TODO - fill in the blanks via sed/awk etc
-            scp -r weechat ackersond@$PUBLIC_IP:~/
+            scp -r weechat core@$PUBLIC_IP:~/
 
       - run:
           name: Launch Traefik & Weechat containers
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
-            ssh ackersond@$PUBLIC_IP -- "docker network create web && \
+            ssh core@$PUBLIC_IP -- "docker network create web && \
             docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
               -v /var/run/docker.sock:/var/run/docker.sock \
@@ -68,7 +68,7 @@ jobs:
               -v ~/traefik/acme.json:/acme.json \
               -p 443:443 --name traefik traefik:1.7"
 
-            ssh ackersond@$PUBLIC_IP -- "docker run -it  \
+            ssh core@$PUBLIC_IP -- "docker run -it  \
               -e UID=1000 -e GID=1000 \
               -v ~/weechat:/weechat --restart=always --network='web' \
               --label='traefik.frontend.rule=Host:{WEECHAT_HOSTNAME}' \
