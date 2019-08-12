@@ -50,6 +50,8 @@ jobs:
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             echo "Public IP is: $PUBLIC_IP"
             sleep 5
+
+            sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
@@ -77,14 +79,14 @@ jobs:
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001:9001 \
-              -v ~/weechat:~/.weechat --restart=always \
-              --label='traefik.frontend.rule=Host:{WEECHAT_HOSTNAME}' \
+              -v /home/core/weechat:/weechat/.weechat --restart=always \
+              --label='traefik.frontend.rule=Host:${WEECHAT_HOSTNAME}' \
               --label='traefik.frontend.passHostHeader=true' \
               --label='traefik.enable=true' \
               --label='traefik.docker.network=web' \
-              --label='traefik.port=${WEECHAT_RELAY_PORT}' \
+              --label='traefik.port=9001' \
               --label='traefik.backend=weechat' \
-              --name weechat weechat"
+              --name weechat danackerson/weechat"
 
             #TODO: update DigitalOcean DNS of {WEECHAT_HOSTNAME}
 

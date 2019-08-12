@@ -26,4 +26,4 @@ defaultEntryPoints = ["https"]
 #  provider = "digitalocean"
 #  delayBeforeCheck = 10
 #[[acme.domains]]
-#  main = "${WEECHAT_HOSTNAME}"
+#  main = "{{WEECHAT_HOSTNAME}}"

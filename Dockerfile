@@ -53,6 +53,6 @@ VOLUME /weechat
 USER weechat
 WORKDIR /weechat
 
-# This works perfectly with `docker run -d --name weechat -p9001:9001 -v ~/.weechat:~/.weechat weechat`
+# This works perfectly with `docker run -d --name weechat -p9001:9001 weechat`
 # Next try: mount the .weechat folder and pass it in during docker run!
 ENTRYPOINT weechat-headless
