@@ -48,12 +48,18 @@ jobs:
           name: Prepare Traefik & Weechat config
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
-            #TODO - fill in the blanks via sed/awk
             echo "Public IP is: $PUBLIC_IP"
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
-            #TODO - fill in the blanks via sed/awk etc
+            sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
+            sed -i -e "s@{{WEECHAT_SEC_CANONICAL_PASSWORD}}@$WEECHAT_SEC_CANONICAL_PASSWORD@" weechat/sec.conf
+            sed -i -e "s@{{WEECHAT_SEC_FREENODE_PASSWORD}}@$WEECHAT_SEC_FREENODE_PASSWORD@" weechat/sec.conf
+            sed -i -e "s@{{WEECHAT_CANONICAL_ADDRESSES}}@$WEECHAT_CANONICAL_ADDRESSES@" weechat/irc.conf
+            sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
+
             scp -r weechat core@$PUBLIC_IP:~/
+            scp Dockerfile core@$PUBLIC_IP:~/
+            ssh core@$PUBLIC_IP -- "docker build . -t weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
@@ -68,16 +74,16 @@ jobs:
               -v ~/traefik/acme.json:/acme.json \
               -p 443:443 --name traefik traefik:1.7"
 
-            ssh core@$PUBLIC_IP -- "docker run -it  \
-              -e UID=1000 -e GID=1000 \
-              -v ~/weechat:/weechat --restart=always --network='web' \
+            ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
+              -e UID=1000 -e GID=1000 -p9001:9001 \
+              -v ~/weechat:~/.weechat --restart=always \
               --label='traefik.frontend.rule=Host:{WEECHAT_HOSTNAME}' \
               --label='traefik.frontend.passHostHeader=true' \
               --label='traefik.enable=true' \
               --label='traefik.docker.network=web' \
               --label='traefik.port=${WEECHAT_RELAY_PORT}' \
               --label='traefik.backend=weechat' \
-              --name weechat jkaberg/weechat"
+              --name weechat weechat"
 
             #TODO: update DigitalOcean DNS of {WEECHAT_HOSTNAME}
 
@@ -85,9 +91,9 @@ jobs:
           name: Remove deploy network access
           command: |
             export ORIG_RANGE=`cat /tmp/orig_range.txt`
-            if [ ! -z "$ORIG_RANGE" ] then;
+            if [ ! -z "$ORIG_RANGE" ]; then
               gcloud compute firewall-rules update default-allow-ssh \
-              --source-ranges=$ORIG_RANGE
+                --source-ranges=$ORIG_RANGE
             fi
           when: always
 
