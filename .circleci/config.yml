@@ -49,6 +49,7 @@ jobs:
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             echo "Public IP is: $PUBLIC_IP"
+            sleep 5
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
