@@ -1,3 +1,6 @@
+# For updates to weechat container:
+# docker build . -t weechat
+# docker push danackerson/weechat
 FROM alpine
 
 ENV LANG=C.UTF-8

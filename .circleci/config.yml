@@ -51,6 +51,8 @@ jobs:
             echo "Public IP is: $PUBLIC_IP"
             sleep 5
 
+            chmod 600 traefik/acme.json
+            echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
             sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
@@ -61,8 +63,7 @@ jobs:
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
             scp -r weechat core@$PUBLIC_IP:~/
-            scp Dockerfile core@$PUBLIC_IP:~/
-            ssh core@$PUBLIC_IP -- "docker build . -t weechat"
+            ssh core@$PUBLIC_IP -- "sudo chmod -R 1000:1000 /home/core/weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
@@ -79,7 +80,7 @@ jobs:
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001:9001 \
-              -v /home/core/weechat:/weechat/.weechat --restart=always \
+              -v /home/core/weechat:/weechat --restart=always \
               --label='traefik.frontend.rule=Host:${WEECHAT_HOSTNAME}' \
               --label='traefik.frontend.passHostHeader=true' \
               --label='traefik.enable=true' \
