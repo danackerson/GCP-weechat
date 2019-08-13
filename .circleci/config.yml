@@ -63,7 +63,7 @@ jobs:
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
             scp -r weechat core@$PUBLIC_IP:~/
-            ssh core@$PUBLIC_IP -- "sudo chmod -R 1000:1000 /home/core/weechat"
+            ssh core@$PUBLIC_IP -- "sudo chown -R 1000:1000 /home/core/weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
