@@ -18,12 +18,12 @@ defaultEntryPoints = ["https"]
       trustedIPs = ["127.1.1.1/32"]
     [entryPoints.https.tls]
 
-#[acme]
-#email = "dan@ackerson.de"
-#storage = "acme.json"
-#entrypoint = "https"
-#[acme.dnsChallenge]
-#  provider = "digitalocean"
-#  delayBeforeCheck = 10
-#[[acme.domains]]
-#  main = "{{WEECHAT_HOSTNAME}}"
+[acme]
+email = "dan@ackerson.de"
+storage = "acme.json"
+entrypoint = "https"
+[acme.dnsChallenge]
+  provider = "digitalocean"
+  delayBeforeCheck = 10
+[[acme.domains]]
+  main = "{{WEECHAT_HOSTNAME}}"
