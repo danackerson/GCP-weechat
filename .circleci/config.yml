@@ -31,6 +31,10 @@ jobs:
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
             echo $PUBLIC_IP > /tmp/public_ip.txt
 
+            curl --silent -X PUT -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" -d "{\"data\":\"$PUBLIC_IP\"}" \
+              "https://api.digitalocean.com/v2/domains/ackerson.de/records/76354761"
+
       - run:
           name: Prepare deploy network access
           command: |
@@ -88,8 +92,6 @@ jobs:
               --label='traefik.port=9001' \
               --label='traefik.backend=weechat' \
               --name weechat danackerson/weechat"
-
-            #TODO: update DigitalOcean DNS of {WEECHAT_HOSTNAME}
 
       - run:
           name: Remove deploy network access
