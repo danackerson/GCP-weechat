@@ -61,8 +61,8 @@ jobs:
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
-            sed -i -e "s@{{WEECHAT_SEC_CANONICAL_PASSWORD}}@$WEECHAT_SEC_CANONICAL_PASSWORD@" weechat/sec.conf
-            sed -i -e "s@{{WEECHAT_SEC_FREENODE_PASSWORD}}@$WEECHAT_SEC_FREENODE_PASSWORD@" weechat/sec.conf
+            sed -i -e "s@{{WEECHAT_CANONICAL_PASSWORD}}@$WEECHAT_CANONICAL_PASSWORD@" weechat/irc.conf
+            sed -i -e "s@{{WEECHAT_FREENODE_PASSWORD}}@$WEECHAT_FREENODE_PASSWORD@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_ADDRESSES}}@$WEECHAT_CANONICAL_ADDRESSES@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
