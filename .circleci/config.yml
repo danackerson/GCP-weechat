@@ -55,8 +55,8 @@ jobs:
             echo "Public IP is: $PUBLIC_IP"
             sleep 5
 
-            chmod 600 traefik/acme.json
-            echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
+            #chmod 600 traefik/acme.json
+            #echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
             sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
@@ -73,26 +73,13 @@ jobs:
           name: Launch Traefik & Weechat containers
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
-            ssh core@$PUBLIC_IP -- "docker network create web && \
-            docker run -d --restart=always --network='web' \
-              -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              -v ~/traefik/traefik.toml:/traefik.toml \
-              -v ~/traefik/logs:/var/log/traefik/ \
-              -v ~/traefik/acme.json:/acme.json \
-              -p 443:443 --name traefik traefik:1.7"
 
-            ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
-              -e UID=1000 -e GID=1000 -p9001:9001 \
-              -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.frontend.rule=Host:${WEECHAT_HOSTNAME}' \
-              --label='traefik.frontend.passHostHeader=true' \
-              --label='traefik.enable=true' \
-              --label='traefik.docker.network=web' \
-              --label='traefik.port=9001' \
-              --label='traefik.backend=weechat' \
-              --name weechat danackerson/weechat"
+            sed -i -e "s@{{TRAEFIK_WC_API_HOSTNAME}}@$TRAEFIK_WC_API_HOSTNAME@" docker-compose.yml
+            sed -i -e "s@{{CTX_DIGITALOCEAN_TOKEN}}@$CTX_DIGITALOCEAN_TOKEN@" docker-compose.yml
+            sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" docker-compose.yml
+            scp docker-compose.yml core@$PUBLIC_IP:~/
 
+            ssh core@$PUBLIC_IP -- "docker compose up"
       - run:
           name: Remove deploy network access
           command: |
