@@ -66,7 +66,7 @@ jobs:
             sed -i -e "s@{{WEECHAT_CANONICAL_ADDRESSES}}@$WEECHAT_CANONICAL_ADDRESSES@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
-            scp -r weechat core@$PUBLIC_IP:~/
+            scp -o StrictHostKeyChecking=no -r weechat core@$PUBLIC_IP:~/
             ssh core@$PUBLIC_IP -- "sudo chown -R 1000:1000 /home/core/weechat &&
               export DOCKER_COMPOSE_VERSION=`git ls-remote --tags git://github.com/docker/compose.git | awk '{print $2}' |grep -v 'docs\|rc' |awk -F'/' '{print $3}' |sort -V |tail -n1` &&
               sudo mkdir -p /opt/bin && sudo chown core /opt/bin &&
