@@ -88,11 +88,16 @@ jobs:
               --label='traefik.http.routers.api.middlewares=api_auth' \
               --label='traefik.http.routers.api.rule=Host(\`$TRAEFIK_WC_API_HOSTNAME\`)' \
               --label='traefik.http.routers.api.service=api@internal' \
-              --label='traefik.http.routers.api.tls' \
-              --label='traefik.tls.stores.default.defaultCertificate' \
+              --label='traefik.http.routers.api.tls.certResolver=traefikdash' \
+              --label='traefik.http.routers.api.tls.domains=$TRAEFIK_WC_API_HOSTNAME' \
+              #--label='traefik.tls.stores.default.defaultCertificate' \
               -p 443:443 --name traefik traefik:v2.0 \
               --api --entrypoints.httpsecure.address=:443 \
-              --providers.docker --providers.docker.exposedByDefault=true"
+              --providers.docker --providers.docker.exposedByDefault=true \
+              --certificatesResolvers.traefikdash.acme.email="dan@ackerson.de" \
+              --certificatesResolvers.traefikdash.acme.storage="acme.json" \
+              --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
+              --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=0"
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001 \
