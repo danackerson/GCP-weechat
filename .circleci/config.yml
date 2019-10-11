@@ -75,7 +75,7 @@ jobs:
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
 
-            ssh core@$PUBLIC_IP TWAH="\`$TRAEFIK_WC_API_HOSTNAME\`"
+            ssh core@$PUBLIC_IP TWAH=\`$TRAEFIK_WC_API_HOSTNAME\`
               -- "docker network create web && \
               docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
@@ -95,7 +95,7 @@ jobs:
               --api --entrypoints.httpsecure.address=:443 \
               --providers.docker --providers.docker.exposedByDefault=true"
 
-            ssh core@$PUBLIC_IP WH="\`$WEECHAT_HOSTNAME\`"
+            ssh core@$PUBLIC_IP WH=\`$WEECHAT_HOSTNAME\`
               -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001 \
               -v /home/core/weechat:/weechat --restart=always \
