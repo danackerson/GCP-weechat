@@ -96,8 +96,8 @@ jobs:
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001:9001 \
               -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.http.routers.api.rule=Host(`${WEECHAT_HOSTNAME}`)' \
-              --label='traefik.port=9001' \
+              --label='traefik.http.routers.weechat.rule=Host(`${WEECHAT_HOSTNAME}`)' \
+              --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
               --name weechat danackerson/weechat"
 
       - run:
