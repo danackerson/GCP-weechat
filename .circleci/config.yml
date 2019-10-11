@@ -85,7 +85,7 @@ jobs:
               --label='traefik.http.middlewares.api_auth.basicauth.users=$TRAEFIK_WC_API_BASICAUTH' \
               --label='traefik.http.routers.api.entrypoints=httpsecure' \
               --label='traefik.http.routers.api.middlewares=api_auth' \
-              --label='traefik.http.routers.api.rule=Host('$TRAEFIK_WC_API_HOSTNAME')' \
+              --label='traefik.http.routers.api.rule=Host(`'+$TRAEFIK_WC_API_HOSTNAME+'`)' \
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls' \
               --label='traefik.tls.stores.default.defaultCertificate' \
@@ -96,7 +96,7 @@ jobs:
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001 \
               -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.http.routers.weechat.rule=Host('$WEECHAT_HOSTNAME')' \
+              --label='traefik.http.routers.weechat.rule=Host(`'+$WEECHAT_HOSTNAME+'`)' \
               --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
               --name weechat danackerson/weechat"
 
