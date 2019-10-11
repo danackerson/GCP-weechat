@@ -74,7 +74,9 @@ jobs:
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
-            ssh core@$PUBLIC_IP -- "docker network create web && \
+
+            ssh core@$PUBLIC_IP -- "export TWAH='`'$TRAEFIK_WC_API_HOSTNAME'`' &&
+            docker network create web && \
             docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
               -e TRAEFIK_ACCESSLOG=true -e TRAEFIK_LOG=true \
@@ -85,7 +87,7 @@ jobs:
               --label='traefik.http.middlewares.api_auth.basicauth.users=$TRAEFIK_WC_API_BASICAUTH' \
               --label='traefik.http.routers.api.entrypoints=httpsecure' \
               --label='traefik.http.routers.api.middlewares=api_auth' \
-              --label='traefik.http.routers.api.rule=Host(`'$TRAEFIK_WC_API_HOSTNAME'`)' \
+              --label='traefik.http.routers.api.rule=Host($TWAH)' \
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls' \
               --label='traefik.tls.stores.default.defaultCertificate' \
@@ -93,10 +95,11 @@ jobs:
               --api --entrypoints.httpsecure.address=:443 \
               --providers.docker --providers.docker.exposedByDefault=true"
 
-            ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
+            ssh core@$PUBLIC_IP -- "export WH='`'$WEECHAT_HOSTNAME'`' &&
+            docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001 \
               -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.http.routers.weechat.rule=Host(`'$WEECHAT_HOSTNAME'`)' \
+              --label='traefik.http.routers.weechat.rule=Host($WH)' \
               --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
               --name weechat danackerson/weechat"
 
