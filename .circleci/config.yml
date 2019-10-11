@@ -55,8 +55,8 @@ jobs:
             echo "Public IP is: $PUBLIC_IP"
             sleep 10
 
-            chmod 600 traefik/acme.json
-            echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
+            #chmod 600 traefik/acme.json
+            #echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
             #sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
