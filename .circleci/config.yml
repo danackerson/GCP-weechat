@@ -53,7 +53,7 @@ jobs:
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             echo "Public IP is: $PUBLIC_IP"
-            sleep 6
+            sleep 10
 
             chmod 600 traefik/acme.json
             echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
