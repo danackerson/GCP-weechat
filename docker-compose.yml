@@ -8,9 +8,7 @@ services:
     - --providers.docker.exposedByDefault=true
     - --entrypoints.httpsecure.address=:443
     container_name: traefik
-    deploy:
-      restart_policy:
-        condition: any
+    restart: on-failure:5
     environment:
       DO_AUTH_TOKEN: '{{CTX_DIGITALOCEAN_TOKEN}}'
       TRAEFIK_ACCESSLOG: "true"
@@ -18,6 +16,7 @@ services:
       TRAEFIK_LOG: "true"
     image: traefik:v2.0
     labels:
+      traefik.http.middlewares.api_auth.basicauth.users: '{{TRAEFIK_WC_API_BASICAUTH}}'
       traefik.http.routers.api.entrypoints: httpsecure
       traefik.http.routers.api.middlewares: api_auth
       traefik.http.routers.api.rule: Host(`{{TRAEFIK_WC_API_HOSTNAME}}`)
@@ -34,19 +33,13 @@ services:
     container_name: weechat
     depends_on:
     - traefik
-    deploy:
-      restart_policy:
-        condition: any
+    restart: on-failure:5
     environment:
       UID: '1000'
       GID: '1000'
     image: danackerson/weechat
     labels:
-      traefik.http.routers.web.entrypoints: httpsecure
-      traefik.http.routers.web.middlewares: https-redirect@docker
       traefik.http.routers.web.rule: Host(`{{WEECHAT_HOSTNAME}}`)
-      traefik.http.routers.web.tls: ''
-      traefik.tls.stores.default.defaultCertificate: ''
     ports:
     - target: 9001
     volumes:

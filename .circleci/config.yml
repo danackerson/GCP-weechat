@@ -49,7 +49,7 @@ jobs:
 
       - checkout
       - run:
-          name: Prepare Traefik & Weechat config
+          name: Prepare Traefik & Weechat config & docker-compose binary
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             echo "Public IP is: $PUBLIC_IP"
@@ -57,8 +57,8 @@ jobs:
 
             #chmod 600 traefik/acme.json
             #echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
-            sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
-            scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
+            #sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
+            #scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_PASSWORD}}@$WEECHAT_CANONICAL_PASSWORD@" weechat/irc.conf
@@ -67,7 +67,11 @@ jobs:
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
             scp -r weechat core@$PUBLIC_IP:~/
-            ssh core@$PUBLIC_IP -- "sudo chown -R 1000:1000 /home/core/weechat"
+            ssh core@$PUBLIC_IP -- "sudo chown -R 1000:1000 /home/core/weechat &&
+              export DOCKER_COMPOSE_VERSION=`git ls-remote --tags git://github.com/docker/compose.git | awk '{print $2}' |grep -v 'docs\|rc' |awk -F'/' '{print $3}' |sort -V |tail -n1` &&
+              sudo mkdir -p /opt/bin && sudo chown core /opt/bin &&
+              curl -L https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-`uname -s`-`uname -m` > /opt/bin/docker-compose
+              chmod u+x /opt/bin/docker-compose"
 
       - run:
           name: Launch Traefik & Weechat containers
@@ -77,9 +81,12 @@ jobs:
             sed -i -e "s@{{TRAEFIK_WC_API_HOSTNAME}}@$TRAEFIK_WC_API_HOSTNAME@" docker-compose.yml
             sed -i -e "s@{{CTX_DIGITALOCEAN_TOKEN}}@$CTX_DIGITALOCEAN_TOKEN@" docker-compose.yml
             sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" docker-compose.yml
+            sed -i -e "s@{{TRAEFIK_WC_API_BASICAUTH}}@$TRAEFIK_WC_API_BASICAUTH@" docker-compose.yml
+
             scp docker-compose.yml core@$PUBLIC_IP:~/
 
-            ssh core@$PUBLIC_IP -- "docker compose up"
+            ssh core@$PUBLIC_IP -- "docker network create web && /opt/bin/docker-compose up -d"
+            # NOTE: if the docker-compose fails, try sudo reboot (and then just docker-compose up -d w/o sudo!)
       - run:
           name: Remove deploy network access
           command: |
