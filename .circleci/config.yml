@@ -74,7 +74,7 @@ jobs:
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
-
+            #--label='traefik.tls.stores.default.defaultCertificate' \
             ssh core@$PUBLIC_IP -- "docker network create web && \
               docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
@@ -90,7 +90,6 @@ jobs:
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls.certResolver=traefikdash' \
               --label='traefik.http.routers.api.tls.domains=$TRAEFIK_WC_API_HOSTNAME' \
-              #--label='traefik.tls.stores.default.defaultCertificate' \
               -p 443:443 --name traefik traefik:v2.0 \
               --api --entrypoints.httpsecure.address=:443 \
               --providers.docker --providers.docker.exposedByDefault=true \
