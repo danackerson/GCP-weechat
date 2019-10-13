@@ -99,7 +99,7 @@ jobs:
               --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5"
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
-              -e UID=1000 -e GID=1000 -p9001 \
+              -e UID=1000 -e GID=1000 -p9001:9001 \
               -v /home/core/weechat:/weechat --restart=always \
               --label='traefik.http.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
               --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
