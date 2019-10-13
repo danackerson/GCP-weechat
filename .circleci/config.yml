@@ -89,20 +89,22 @@ jobs:
               --label='traefik.http.routers.api.rule=Host(\`$TRAEFIK_WC_API_HOSTNAME\`)' \
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls.certResolver=traefikdash' \
-              --label='traefik.http.routers.api.tls.domains=$TRAEFIK_WC_API_HOSTNAME' \
+              --label='traefik.http.routers.api.tls.domains.main=$TRAEFIK_WC_API_HOSTNAME' \
+              --label='traefik.http.routers.api.tls.domains.sans=$WEECHAT_HOSTNAME' \
               -p 443:443 --name traefik traefik:v2.0 \
               --api --entrypoints.httpsecure.address=:443 \
               --providers.docker --providers.docker.exposedByDefault=true \
               --certificatesResolvers.traefikdash.acme.email="dan@ackerson.de" \
-              --certificatesResolvers.traefikdash.acme.storage="acme.json" \
+              --certificatesResolvers.traefikdash.acme.storage="traefik_dashboard_acme.json" \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5"
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001 \
               -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.http.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
+              --label='traefik.tcp.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
               --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
+              --label='traefik.http.routers.weechat.tls.certResolver=traefikdash' \
               --name weechat danackerson/weechat"
 
       - run:
