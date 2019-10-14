@@ -55,9 +55,8 @@ jobs:
             echo "Public IP is: $PUBLIC_IP"
             sleep 10
 
-            #chmod 600 traefik/acme.json
-            #echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
-            #sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
+            chmod 600 traefik/acme.json
+            echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
@@ -74,15 +73,12 @@ jobs:
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
-            #--label='traefik.tls.stores.default.defaultCertificate' \
             ssh core@$PUBLIC_IP -- "docker network create web && \
               docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
-              -e TRAEFIK_ACCESSLOG=true -e TRAEFIK_LOG=true \
-              -e TRAEFIK_ACCESSLOG_FILEPATH=/var/log/traefik/access.log \
-              -e TRAEFIK_LOG_FILEPATH=/var/log/traefik/traefik.log \
               -v /var/run/docker.sock:/var/run/docker.sock:ro \
               -v /home/core/traefik/logs:/var/log/traefik/ \
+              -v /home/core/traefik/acme.json:/acme.json \
               --label='traefik.http.middlewares.api_auth.basicauth.users=$TRAEFIK_WC_API_BASICAUTH' \
               --label='traefik.http.routers.api.entrypoints=httpsecure' \
               --label='traefik.http.routers.api.middlewares=api_auth' \
@@ -93,7 +89,7 @@ jobs:
               -p 443:443 --name traefik traefik:v2.0 \
               --api --providers.docker --entrypoints.httpsecure.address=:443 \
               --providers.docker.exposedByDefault=true \
-              --accesslog.filepath=/var/log/traefik/acess.log \
+              --accesslog.filepath=/var/log/traefik/access.log \
               --log.filepath=/var/log/traefik/traefik.log --log.level=INFO \
               --certificatesResolvers.traefikdash.acme.email="dan@ackerson.de" \
               --certificatesResolvers.traefikdash.acme.storage="acme.json" \
@@ -101,9 +97,9 @@ jobs:
               --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5"
 
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
-              -e UID=1000 -e GID=1000 -p9001:9001 \
-              -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.tcp.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
+              -e UID=1000 -e GID=1000 -p9001 \
+              -v /home/core/weechat:/weechat/.weechat --restart=always \
+              --label='traefik.tcp.routers.weechat.rule=HostSNI(\`$WEECHAT_HOSTNAME\`)' \
               --label='traefik.tcp.routers.weechat.entrypoints=httpsecure' \
               --label='traefik.tcp.routers.weechat.tls.certResolver=traefikdash' \
               --label='traefik.tcp.routers.weechat.tls.domains=$WEECHAT_HOSTNAME' \
