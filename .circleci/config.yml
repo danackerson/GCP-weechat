@@ -91,9 +91,10 @@ jobs:
               --label='traefik.http.routers.api.tls.certResolver=traefikdash' \
               --label='traefik.http.routers.api.tls.domains=$TRAEFIK_WC_API_HOSTNAME' \
               -p 443:443 --name traefik traefik:v2.0 \
-              --api --providers.docker --accesslog.filepath=/var/log/traefik \
-              --log.filepath=/var/log/traefik/ --entrypoints.httpsecure.address=:443  \
+              --api --providers.docker --entrypoints.httpsecure.address=:443 \
               --providers.docker.exposedByDefault=true \
+              --accesslog.filepath=/var/log/traefik/acess.log \
+              --log.filepath=/var/log/traefik/traefik.log --log.level=INFO \
               --certificatesResolvers.traefikdash.acme.email="dan@ackerson.de" \
               --certificatesResolvers.traefikdash.acme.storage="acme.json" \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
@@ -102,10 +103,10 @@ jobs:
             ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=1000 -e GID=1000 -p9001:9001 \
               -v /home/core/weechat:/weechat --restart=always \
-              --label='traefik.http.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
-              --label='traefik.http.routers.weechat.entrypoints=httpsecure' \
-              --label='traefik.http.routers.weechat.tls.certResolver=traefikdash' \
-              --label='traefik.http.routers.weechat.tls.domains=$WEECHAT_HOSTNAME' \
+              --label='traefik.tcp.routers.weechat.rule=Host(\`$WEECHAT_HOSTNAME\`)' \
+              --label='traefik.tcp.routers.weechat.entrypoints=httpsecure' \
+              --label='traefik.tcp.routers.weechat.tls.certResolver=traefikdash' \
+              --label='traefik.tcp.routers.weechat.tls.domains=$WEECHAT_HOSTNAME' \
               --name weechat danackerson/weechat"
 
       - run:
