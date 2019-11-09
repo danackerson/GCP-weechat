@@ -24,16 +24,13 @@ jobs:
 
             gcloud compute instances create weechat-$CIRCLE_BUILD_NUM \
               --image-family=coreos-stable --image-project=coreos-cloud \
-              --machine-type=f1-micro --boot-disk-size=30GB
+              --machine-type=f1-micro --boot-disk-size=30GB --zone us-east1-b
 
             apk -u add jq
             PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
               --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP'`
+            echo "Public IP is: $PUBLIC_IP"
             echo $PUBLIC_IP > /tmp/public_ip.txt
-
-            curl --silent -X PUT -H "Content-Type: application/json" \
-              -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" -d "{\"data\":\"$PUBLIC_IP\"}" \
-              "https://api.digitalocean.com/v2/domains/ackerson.de/records/76354761"
 
       - run:
           name: Prepare deploy network access
@@ -52,22 +49,22 @@ jobs:
           name: Prepare Traefik & Weechat config
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
-            echo "Public IP is: $PUBLIC_IP"
-            sleep 5
 
             chmod 600 traefik/acme.json
             echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
             sed -i -e "s@{{WEECHAT_HOSTNAME}}@$WEECHAT_HOSTNAME@" traefik/traefik.toml
-            scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
-
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_PASSWORD}}@$WEECHAT_CANONICAL_PASSWORD@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_FREENODE_PASSWORD}}@$WEECHAT_FREENODE_PASSWORD@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_ADDRESSES}}@$WEECHAT_CANONICAL_ADDRESSES@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
+            # ensure GCE instance is fully up & ready for SSH connections
+            sleep 5
+            scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
             scp -r weechat core@$PUBLIC_IP:~/
-            ssh core@$PUBLIC_IP -- "sudo chown -R 1000:1000 /home/core/weechat"
+            ssh core@$PUBLIC_IP -- "sudo systemctl enable docker && \
+              sudo chown -R 1000:1000 /home/core/weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
@@ -92,6 +89,21 @@ jobs:
               --label='traefik.port=9001' \
               --label='traefik.backend=weechat' \
               --name weechat danackerson/weechat"
+
+      - run:
+          name: Update DNS entries of traefik monitor & weechat relay
+          command: |
+            export PUBLIC_IP=`cat /tmp/public_ip.txt`
+
+            #curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" \
+            # "https://api.digitalocean.com/v2/domains/ackerson.de/records?page=2"
+
+            curl --silent -X PUT -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" -d "{\"data\":\"$PUBLIC_IP\"}" \
+              "https://api.digitalocean.com/v2/domains/ackerson.de/records/80691684"
+            curl --silent -X PUT -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" -d "{\"data\":\"$PUBLIC_IP\"}" \
+              "https://api.digitalocean.com/v2/domains/ackerson.de/records/80691756"
 
       - run:
           name: Remove deploy network access
