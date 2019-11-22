@@ -60,7 +60,7 @@ jobs:
             sed -i -e "s@{{WEECHAT_CANONICAL_CHANNELS}}@$WEECHAT_CANONICAL_CHANNELS@" weechat/irc.conf
 
             # ensure GCE instance is fully up & ready for SSH connections
-            sleep 5
+            sleep 10
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
             scp -r weechat core@$PUBLIC_IP:~/
             ssh core@$PUBLIC_IP -- "sudo systemctl enable docker && \
