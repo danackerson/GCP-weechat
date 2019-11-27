@@ -1,5 +1,6 @@
 # For updates to weechat container:
 # docker build . -t weechat
+# docker tag <build_id_above> danackerson/weechat
 # docker push danackerson/weechat
 FROM alpine
 
