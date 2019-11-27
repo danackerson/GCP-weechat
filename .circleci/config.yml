@@ -61,6 +61,7 @@ jobs:
 
             # ensure GCE instance is fully up & ready for SSH connections
             sleep 10
+
             scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
             scp -r weechat core@$PUBLIC_IP:~/
             ssh core@$PUBLIC_IP -- "sudo systemctl enable docker && \
@@ -109,6 +110,7 @@ jobs:
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
             #curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" \
             # "https://api.digitalocean.com/v2/domains/ackerson.de/records?page=2"
+
             curl --silent -X PUT -H "Content-Type: application/json" \
               -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" -d "{\"data\":\"$PUBLIC_IP\"}" \
               "https://api.digitalocean.com/v2/domains/ackerson.de/records/80691684"
