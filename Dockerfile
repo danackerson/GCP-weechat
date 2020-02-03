@@ -12,15 +12,11 @@ RUN BUILD_DEPS=" \
     cmake \
     build-base \
     libcurl \
-    gettext-dev \
+    libintl \
     zlib-dev \
     curl-dev \
     perl-dev \
-    libexecinfo-dev \
-    aspell-libs \
-    libintl \
     gnutls-dev \
-    aspell \
     ncurses-dev \
     libgcrypt-dev \
     ca-certificates \
@@ -41,7 +37,8 @@ RUN BUILD_DEPS=" \
     && mkdir -p /tmp/weechat/build \
     && tar xzf /tmp/weechat.tar.gz --strip 1 -C /tmp/weechat \
     && cd /tmp/weechat/build \
-    && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_SCRIPTS=OFF -DENABLE_SPELL=OFF \
+    && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_SCRIPTS=OFF \
+    -DENABLE_NLS=OFF -DENABLE_SPELL=OFF \
     #-DENABLE_PHP=OFF -DENABLE_RUBY=OFF \
     #-DENABLE_JS=OFF -DENABLE_LUA=OFF -DENABLE_TCL=OFF -DENABLE_GUILE=OFF \
     #-DENABLE_JAVASCRIPT=OFF \
