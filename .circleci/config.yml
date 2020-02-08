@@ -9,6 +9,8 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - $CTX_SSH_DEPLOY_FINGERPRINT
+      - checkout
+
       - run:
           name: Store Service Accounts
           command: |
@@ -23,8 +25,9 @@ jobs:
             gcloud --quiet config set compute/zone ${CTX_GOOGLE_COMPUTE_ZONE}
 
             gcloud compute instances create weechat-$CIRCLE_BUILD_NUM \
-              --image-family=coreos-stable --image-project=coreos-cloud \
+              --image=cos-stable --image-project=cos-cloud \
               --machine-type=f1-micro --boot-disk-size=30GB --zone us-east1-b
+              --metadata-from-file=user-data=cloud-init.yml
 
             apk -u add jq
             PUBLIC_IP=`gcloud compute instances describe weechat-$CIRCLE_BUILD_NUM \
@@ -44,7 +47,6 @@ jobs:
             gcloud compute firewall-rules update default-allow-ssh \
               --source-ranges=$ORIG_RANGE,$DEPLOY_IP
 
-      - checkout
       - run:
           name: Prepare Traefik & Weechat config
           command: |
@@ -62,17 +64,16 @@ jobs:
             # ensure GCE instance is fully up & ready for SSH connections
             sleep 10
 
-            scp -o StrictHostKeyChecking=no -r traefik core@$PUBLIC_IP:~/
-            scp -r weechat core@$PUBLIC_IP:~/
-            ssh core@$PUBLIC_IP -- "sudo systemctl enable docker && \
-              sudo chown -R 1000:1000 /home/core/weechat"
+            scp -o StrictHostKeyChecking=no -r traefik ubuntu@$PUBLIC_IP:~/
+            scp -r weechat ubuntu@$PUBLIC_IP:~/
+            ssh ubuntu@$PUBLIC_IP -- "sudo chown -R 2000:2000 /home/ubuntu/weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
-            ssh core@$PUBLIC_IP -- "docker network create web && \
+            ssh ubuntu@$PUBLIC_IP -- "docker network create web && \
               docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
               -v /var/run/docker.sock:/var/run/docker.sock:ro \
@@ -95,8 +96,8 @@ jobs:
               --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5"
 
-            ssh core@$PUBLIC_IP -- "docker run -d --network='web' \
-              -e UID=1000 -e GID=1000 -p9001 \
+            ssh ubuntu@$PUBLIC_IP -- "docker run -d --network='web' \
+              -e UID=2000 -e GID=2000 -p9001 \
               -v /home/core/weechat:/weechat/.weechat --restart=always \
               --label='traefik.tcp.routers.weechat.rule=HostSNI(\`$WEECHAT_HOSTNAME\`)' \
               --label='traefik.tcp.routers.weechat.entrypoints=httpsecure' \
