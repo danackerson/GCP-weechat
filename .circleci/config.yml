@@ -25,8 +25,8 @@ jobs:
             gcloud --quiet config set compute/zone ${CTX_GOOGLE_COMPUTE_ZONE}
 
             gcloud compute instances create weechat-$CIRCLE_BUILD_NUM \
-              --image=cos-stable --image-project=cos-cloud \
-              --machine-type=f1-micro --boot-disk-size=30GB --zone us-east1-b
+              --image-family cos-stable --image-project cos-cloud \
+              --machine-type f1-micro --boot-disk-size 30GB --zone us-east1-b \
               --metadata-from-file=user-data=cloud-init.yml
 
             apk -u add jq
