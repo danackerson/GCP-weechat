@@ -1,12 +1,12 @@
 # For updates to weechat container:
 # docker build . -t weechat
-# docker tag <build_id_above> danackerson/weechat
-# docker push danackerson/weechat
+# docker tag <build_id_above> danackerson/weechat:<version>
+# docker push danackerson/weechat:<version>
 FROM alpine
 
 ENV LANG=C.UTF-8
-ENV UID=1000
-ENV GID=1000
+ENV UID=2000
+ENV GID=2000
 
 RUN BUILD_DEPS=" \
     cmake \
