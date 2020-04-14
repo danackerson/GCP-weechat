@@ -3,9 +3,9 @@ groups:
 - docker
 
 users:
-- name: ubuntu
-  groups: docker
+- name: weechat
   uid: 2000
+  groups: docker
   ssh-authorized-keys:
     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDqEP2RmpmjmWGevp8uN5na1TxyppNApf79go2Lu9Q8dHXKmQWmYMTsrtufIpPVWHQLXRt8uMgY81/MdRwjcekfQZbLI+4z6zqx9dJlHufqDe6ggjXqdNd+9RiHUWts00Xsma/PWV0pkuuaE4AbAS97jaV9xbnwQL3CLFrux+1RZnP8xSVhjNMDHzsXdopy8a0rlMPLMrnIhpEMg/5aGnby/UuzrxtEtrtcp8qzE0ZEDqy8bKuGTFuCSs64kP5MM3enaV4jxTHR13SPe2fMQ/27wiJBwtp9qA/bwLlZxANDWp2EVY5tT+Pi42jFjtXH2YEK2ml3h1N0UnmIm7LvgkQCGnh1TLRF2sdResEzXK+pNo0il+JWrkwoydhA5ICZFCfzWhk0beAe6pwDeFx0hw3NK+gFuEYcyhMoj7KCallRQyeUS82mOHyFnhQQ3Fh3kLzHnG+9aHXFvovuAa9FXvmaGCwaxZuCP3gxycVEyUh2/RCJ60g7MqsCTx7/rcK/BXO6vzfMk08pa3/8GqGYn/ZMlumYG5SV3hZm4klxbXyfSi+AIGHF6Q2YwjN1k7pQvgmHSsUg8r0FIZ5dFqCknsux7SBswaa7Ff5exCGHuOmWIrgsnA+0n2QrWFOZcIcamIHsZbVDiQSp9aDzuzY00It9CjFhKSPw7Cs8cMUUFytvZw== ackersond@deploy.ackerson.de
 
@@ -36,8 +36,8 @@ write_files:
     Description=Reboot Scheduling to ensure
 
     [Timer]
-    #OnCalendar=Sat *-*-* 01:30:00
-    OnCalendar=*-*-* 01:30:00
+    OnCalendar=Sat *-*-* 01:30:00
+    #OnCalendar=*-*-* 01:30:00
 
     [Install]
     WantedBy=multi-user.target
