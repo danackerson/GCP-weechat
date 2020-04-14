@@ -86,7 +86,7 @@ jobs:
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls.certResolver=traefikdash' \
               --label='traefik.http.routers.api.tls.domains=$TRAEFIK_WC_API_HOSTNAME' \
-              -p 443:443 --name traefik traefik:v2.1 \
+              -p 443:443 --name traefik traefik:v2.2 \
               --api --providers.docker --entrypoints.httpsecure.address=:443 \
               --providers.docker.exposedByDefault=true \
               --accesslog.filepath=/var/log/traefik/access.log \
@@ -103,7 +103,7 @@ jobs:
               --label='traefik.tcp.routers.weechat.entrypoints=httpsecure' \
               --label='traefik.tcp.routers.weechat.tls.certResolver=traefikdash' \
               --label='traefik.tcp.routers.weechat.tls.domains=$WEECHAT_HOSTNAME' \
-              --name weechat danackerson/weechat:2.7"
+              --name weechat danackerson/weechat:2.8"
 
       - run:
           name: Update DNS entries of traefik monitor & weechat relay
