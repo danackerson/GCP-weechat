@@ -64,21 +64,21 @@ jobs:
             # ensure GCE instance is fully up & ready for SSH connections
             sleep 10
 
-            scp -o StrictHostKeyChecking=no -r traefik ubuntu@$PUBLIC_IP:~/
-            scp -r weechat ubuntu@$PUBLIC_IP:~/
-            ssh ubuntu@$PUBLIC_IP -- "sudo chown -R 2000:2000 /home/ubuntu/weechat"
+            scp -o StrictHostKeyChecking=no -r traefik weechat@$PUBLIC_IP:~/
+            scp -r weechat weechat@$PUBLIC_IP:~/
+            ssh weechat@$PUBLIC_IP -- "sudo chown -R 2000:2000 /home/weechat/weechat"
 
       - run:
           name: Launch Traefik & Weechat containers
           command: |
             export PUBLIC_IP=`cat /tmp/public_ip.txt`
 
-            ssh ubuntu@$PUBLIC_IP -- "docker network create web && \
+            ssh weechat@$PUBLIC_IP -- "docker network create web && \
               docker run -d --restart=always --network='web' \
               -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_TOKEN \
               -v /var/run/docker.sock:/var/run/docker.sock:ro \
-              -v /home/core/traefik/logs:/var/log/traefik/ \
-              -v /home/core/traefik/acme.json:/acme.json \
+              -v /home/weechat/traefik/logs:/var/log/traefik/ \
+              -v /home/weechat/traefik/acme.json:/acme.json \
               --label='traefik.http.middlewares.api_auth.basicauth.users=$TRAEFIK_WC_API_BASICAUTH' \
               --label='traefik.http.routers.api.entrypoints=httpsecure' \
               --label='traefik.http.routers.api.middlewares=api_auth' \
@@ -96,9 +96,9 @@ jobs:
               --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5 \
 
-            ssh ubuntu@$PUBLIC_IP -- "docker run -d --network='web' \
+            ssh weechat@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=2000 -e GID=2000 -p9001 \
-              -v /home/core/weechat:/weechat/.weechat --restart=always \
+              -v /home/weechat/weechat:/weechat/.weechat --restart=always \
               --label='traefik.tcp.routers.weechat.rule=HostSNI(\`$WEECHAT_HOSTNAME\`)' \
               --label='traefik.tcp.routers.weechat.entrypoints=httpsecure' \
               --label='traefik.tcp.routers.weechat.tls.certResolver=traefikdash' \
