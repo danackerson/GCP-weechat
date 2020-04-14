@@ -56,6 +56,9 @@ jobs:
             echo $TRAEFIK_ACME_JSON_WEECHAT > traefik/acme.json
 
             sed -i -e "s@{{WEECHAT_RELAY_PASSWORD}}@$WEECHAT_RELAY_PASSWORD@" weechat/relay.conf
+            sed -i -e "s@{{WEECHAT_RELAY_TOTP_BASE32}}@$WEECHAT_RELAY_TOTP_BASE32@" weechat/relay.conf
+            sed -i -e "s@{{WEECHAT_RELAY_WS_ALLOWED_ORIGIN}}@$WEECHAT_RELAY_WS_ALLOWED_ORIGIN@" weechat/relay.conf
+
             sed -i -e "s@{{WEECHAT_CANONICAL_PASSWORD}}@$WEECHAT_CANONICAL_PASSWORD@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_FREENODE_PASSWORD}}@$WEECHAT_FREENODE_PASSWORD@" weechat/irc.conf
             sed -i -e "s@{{WEECHAT_CANONICAL_ADDRESSES}}@$WEECHAT_CANONICAL_ADDRESSES@" weechat/irc.conf
