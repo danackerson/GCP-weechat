@@ -94,7 +94,7 @@ jobs:
               --certificatesResolvers.traefikdash.acme.email=dan@ackerson.de \
               --certificatesResolvers.traefikdash.acme.storage=acme.json \
               --certificatesResolvers.traefikdash.acme.dnsChallenge.provider=digitalocean \
-              --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5 \
+              --certificatesResolvers.traefikdash.acme.dnsChallenge.delayBeforeCheck=5"
 
             ssh weechat@$PUBLIC_IP -- "docker run -d --network='web' \
               -e UID=2000 -e GID=2000 -p9001 \
